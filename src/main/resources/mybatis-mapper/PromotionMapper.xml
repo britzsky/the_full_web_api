@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.thefullweb.api.mapper.PromotionMapper">
+
+    <!-- 홍보 목록 조회(검색 지원 + 삭제 제외) -->
+    <select id="selectPostList" resultType="PromotionPost">
+        SELECT
+            id,
+            title,
+            author,
+            DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s') AS created_at,
+            DATE_FORMAT(updated_at, '%Y-%m-%dT%H:%i:%s') AS updated_at
+        FROM tb_promotion_posts
+        WHERE del_yn = 'N'
+        <if test="query != null and query != ''">
+            <choose>
+                <when test="field == 'title'">
+                    AND title LIKE CONCAT('%', #{query}, '%')
+                </when>
+                <when test="field == 'content'">
+                    AND content LIKE CONCAT('%', #{query}, '%')
+                </when>
+                <otherwise>
+                    AND (
+                        title LIKE CONCAT('%', #{query}, '%')
+                        OR content LIKE CONCAT('%', #{query}, '%')
+                    )
+                </otherwise>
+            </choose>
+        </if>
+        ORDER BY id DESC
+    </select>
+
+    <!-- 홍보 상세 조회 -->
+    <select id="selectPostById" parameterType="long" resultType="PromotionPost">
+        SELECT
+            id,
+            title,
+            content,
+            author,
+            DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s') AS created_at,
+            DATE_FORMAT(updated_at, '%Y-%m-%dT%H:%i:%s') AS updated_at,
+            del_yn,
+            DATE_FORMAT(del_dt, '%Y-%m-%dT%H:%i:%s') AS del_dt
+        FROM tb_promotion_posts
+        WHERE id = #{id}
+          AND del_yn = 'N'
+        LIMIT 1
+    </select>
+
+    <!-- 이전글 조회 -->
+    <select id="selectPreviousPost" parameterType="long" resultType="PromotionPost">
+        SELECT
+            id,
+            title,
+            author,
+            DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s') AS created_at,
+            DATE_FORMAT(updated_at, '%Y-%m-%dT%H:%i:%s') AS updated_at
+        FROM tb_promotion_posts
+        WHERE id &gt; #{id}
+          AND del_yn = 'N'
+        ORDER BY id ASC
+        LIMIT 1
+    </select>
+
+    <!-- 다음글 조회 -->
+    <select id="selectNextPost" parameterType="long" resultType="PromotionPost">
+        SELECT
+            id,
+            title,
+            author,
+            DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s') AS created_at,
+            DATE_FORMAT(updated_at, '%Y-%m-%dT%H:%i:%s') AS updated_at
+        FROM tb_promotion_posts
+        WHERE id &lt; #{id}
+          AND del_yn = 'N'
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <!-- 홍보 등록 -->
+    <insert id="insertPost" parameterType="PromotionPost" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tb_promotion_posts (
+            title,
+            content,
+            author,
+            created_at,
+            updated_at,
+            del_yn
+        ) VALUES (
+            #{title},
+            #{content},
+            #{author},
+            NOW(),
+            NOW(),
+            'N'
+        )
+    </insert>
+
+    <!-- 홍보 수정 -->
+    <update id="updatePost" parameterType="PromotionPost">
+        UPDATE tb_promotion_posts
+        SET title = #{title},
+            content = #{content},
+            author = #{author},
+            updated_at = NOW()
+        WHERE id = #{id}
+          AND del_yn = 'N'
+    </update>
+
+    <!-- 홍보 소프트삭제 -->
+    <update id="softDeletePost" parameterType="long">
+        UPDATE tb_promotion_posts
+        SET del_yn = 'Y',
+            del_dt = NOW(),
+            updated_at = NOW()
+        WHERE id = #{id}
+          AND del_yn = 'N'
+    </update>
+
+</mapper>
+

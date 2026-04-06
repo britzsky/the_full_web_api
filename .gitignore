@@ -1,0 +1,21 @@
+# 로그/빌드 산출물
+.gradle/
+build/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# 로컬 실행 환경
+.env
+application-secret-local.properties
+application-secret-real.properties
+application-real.properties
+application-local.properties
+README.md
+AGENTS.md
+bootrun.log
+bootrun-live.log
+bootrun-noschema.log
