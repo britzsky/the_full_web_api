@@ -22,7 +22,7 @@ import com.thefullweb.api.service.PromotionService;
 
 // 홍보 게시글 API 컨트롤러
 @RestController
-@RequestMapping("/api/promotion/posts")
+@RequestMapping("/promotion/posts")
 public class PromotionController {
 
     // 홍보 도메인 서비스 주입

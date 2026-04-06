@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 // 서버 상태 확인용 헬스체크 컨트롤러
 @RestController
-@RequestMapping("/api/health")
+@RequestMapping("/health")
 public class HealthController {
 
     // API 정상 기동 여부 응답

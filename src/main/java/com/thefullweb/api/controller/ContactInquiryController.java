@@ -21,7 +21,7 @@ import com.thefullweb.api.service.ContactInquiryService;
 
 // 고객문의/문의관리 API 컨트롤러
 @RestController
-@RequestMapping({ "/api/contact/inquiry_management", "/api/contact/inquiry" })
+@RequestMapping({ "/contact/inquiry_management", "/api/contact/inquiry" })
 public class ContactInquiryController {
 
     // 문의 도메인 서비스 주입
