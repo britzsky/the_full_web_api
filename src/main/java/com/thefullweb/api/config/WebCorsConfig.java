@@ -13,7 +13,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebCorsConfig implements WebMvcConfigurer {
 
         // 허용 오리진 목록(콤마 구분)
-        @Value("${app.cors.allowed-origins:http://localhost:8081,http://127.0.0.1:8081,http://52.64.151.137:8081,http://n.thefull.kr,http://n.thefull.kr:8081}")
+        @Value("${app.cors.allowed-origins:http://localhost:8081,http://127.0.0.1:8081,http://52.64.151.137:8081,http://n.thefull.kr,http://n.thefull.kr:8081,http://localhost:8090,http://127.0.0.1:8090,http://52.64.151.137:8090,http://n.thefull.kr,http://n.thefull.kr:8090}")
         private String allowedOrigins;
 
         // API 전역 CORS 정책 적용
