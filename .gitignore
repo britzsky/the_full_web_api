@@ -3,6 +3,8 @@
 build/
 out/
 bin/
+.settings/*.prefs
+.log
 
 # IDE
 .idea/
@@ -20,3 +22,6 @@ AGENTS.md
 bootrun.log
 bootrun-live.log
 bootrun-noschema.log
+src/main/resources/application.properties_local
+src/main/resources/application.properties_real
+
