@@ -29,11 +29,9 @@ public class PromotionController {
 
     // 홍보 도메인 서비스 주입
     private final PromotionService promotionService;
-    private final WebCorsConfig webCorsConfig;
 
     public PromotionController(PromotionService promotionService, WebCorsConfig webCorsConfig) {
         this.promotionService = promotionService;
-        this.webCorsConfig = webCorsConfig;
     }
 
     // 홍보 게시글 목록 조회(검색 가능)
