@@ -22,6 +22,8 @@ import com.thefullweb.api.dto.common.MessageResponse;
 import com.thefullweb.api.service.ContactInquiryErpService;
 import com.thefullweb.api.service.ContactInquiryService;
 
+import com.thefullweb.api.config.WebCorsConfig;
+
 // 고객문의/문의관리 API 컨트롤러
 @RestController
 @RequestMapping("/contact/manage")
@@ -30,13 +32,16 @@ public class ContactInquiryController {
     // 문의 도메인 서비스 주입
     private final ContactInquiryService contactInquiryService;
     private final ContactInquiryErpService contactInquiryErpService;
+	private WebCorsConfig webCorsConfig;
 
     public ContactInquiryController(
             ContactInquiryService contactInquiryService,
+            WebCorsConfig webCorsConfig,
             ContactInquiryErpService contactInquiryErpService) {
-        this.contactInquiryService = contactInquiryService;
-        this.contactInquiryErpService = contactInquiryErpService;
-    }
+		        this.contactInquiryService = contactInquiryService;
+		        this.contactInquiryErpService = contactInquiryErpService;
+		        this.webCorsConfig = webCorsConfig;
+		    }
 
     // 문의관리 API: 문의 목록 조회
     @GetMapping

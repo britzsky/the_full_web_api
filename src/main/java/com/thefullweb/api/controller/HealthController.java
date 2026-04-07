@@ -17,16 +17,23 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriUtils;
 
+import com.thefullweb.api.config.WebCorsConfig;
+
 // 서버 상태 확인과 공개 조회성 엔드포인트를 처리하는 컨트롤러
 @RestController
 public class HealthController {
 
     // 외부 공개 API 호출용 RestClient
     private final RestClient restClient = RestClient.create();
+    private final WebCorsConfig webCorsConfig;
 
     // 로컬/운영 시크릿 설정에서 읽는 인스타그램 access token
     @Value("${instagram.access-token:}")
     private String accessToken;
+
+    public HealthController(WebCorsConfig webCorsConfig) {
+        this.webCorsConfig = webCorsConfig;
+    }
 
     // API 정상 기동 여부 응답
     @GetMapping("/health")
