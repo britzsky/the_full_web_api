@@ -20,8 +20,6 @@ import com.thefullweb.api.dto.promotion.PromotionPostCreateRequest;
 import com.thefullweb.api.dto.promotion.PromotionPostUpdateRequest;
 import com.thefullweb.api.service.PromotionService;
 
-import com.thefullweb.api.config.WebCorsConfig;
-
 // 홍보 게시글 API 컨트롤러
 @RestController
 @RequestMapping("/promotion/posts")
@@ -30,7 +28,7 @@ public class PromotionController {
     // 홍보 도메인 서비스 주입
     private final PromotionService promotionService;
 
-    public PromotionController(PromotionService promotionService, WebCorsConfig webCorsConfig) {
+    public PromotionController(PromotionService promotionService) {
         this.promotionService = promotionService;
     }
 
@@ -99,5 +97,5 @@ public class PromotionController {
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
-}
 
+}

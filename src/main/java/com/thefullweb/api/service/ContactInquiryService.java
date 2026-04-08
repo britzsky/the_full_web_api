@@ -48,6 +48,31 @@ public class ContactInquiryService {
         return contactInquiryMapper.selectReplyByInquiryId(inquiryId);
     }
 
+    // 문의 담당 user_id 반영
+    @Transactional
+    public ContactInquiry assignInquiryUser(Long inquiryId, String userId) {
+        String normalizedUserId = normalize(userId);
+        if (inquiryId == null || inquiryId.longValue() <= 0 || normalizedUserId.isEmpty()) {
+            return inquiryId == null ? null : contactInquiryMapper.selectInquiryById(inquiryId);
+        }
+
+        contactInquiryMapper.updateInquiryAssignedUser(inquiryId, normalizedUserId);
+        return contactInquiryMapper.selectInquiryById(inquiryId);
+    }
+
+    // 답변 메일 발송 완료 후 문의 답변여부를 완료 상태로 반영
+    @Transactional
+    public ContactInquiry markInquiryAnswered(Long inquiryId, String userId) {
+        String actor = normalize(userId).isEmpty() ? "admin" : normalize(userId);
+        ContactInquiry inquiry = contactInquiryMapper.selectInquiryById(inquiryId);
+        if (inquiry == null) {
+            return null;
+        }
+
+        contactInquiryMapper.markInquiryAnswered(inquiryId, actor);
+        return contactInquiryMapper.selectInquiryById(inquiryId);
+    }
+
     // 고객문의 등록
     @Transactional
     public ContactInquiry createInquiry(ContactInquiryCreateRequest request) {
@@ -97,8 +122,6 @@ public class ContactInquiryService {
             existing.setModId(userId);
             contactInquiryMapper.updateReply(existing);
         }
-
-        contactInquiryMapper.markInquiryAnswered(inquiryId, userId);
         return contactInquiryMapper.selectReplyByInquiryId(inquiryId);
     }
 

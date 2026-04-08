@@ -31,6 +31,9 @@ public interface ContactInquiryMapper {
     // 문의 답변여부 Y 업데이트
     int markInquiryAnswered(@Param("id") Long id, @Param("modId") String modId);
 
+    // 문의 담당 user_id 반영
+    int updateInquiryAssignedUser(@Param("id") Long id, @Param("userId") String userId);
+
     // 문의 소프트삭제
     int softDeleteInquiry(@Param("id") Long id, @Param("modId") String modId);
 

@@ -25,3 +25,5 @@ bootrun-noschema.log
 src/main/resources/application.properties_local
 src/main/resources/application.properties_real
 
+src/main/resources/schema-mariadb.sql
+src/main/resources/schema.sql

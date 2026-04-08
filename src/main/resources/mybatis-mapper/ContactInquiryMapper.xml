@@ -155,6 +155,16 @@
           AND del_yn = 'N'
     </update>
 
+    <!-- 문의 담당 user_id 반영 -->
+    <update id="updateInquiryAssignedUser">
+        UPDATE tb_inquiry
+        SET user_id = #{userId},
+            mod_id = #{userId},
+            mod_dt = NOW()
+        WHERE id = #{id}
+          AND del_yn = 'N'
+    </update>
+
     <!-- 문의 소프트삭제 -->
     <update id="softDeleteInquiry">
         UPDATE tb_inquiry

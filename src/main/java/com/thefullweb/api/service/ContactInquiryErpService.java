@@ -1,8 +1,6 @@
 package com.thefullweb.api.service;
 
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -71,7 +69,7 @@ public class ContactInquiryErpService {
         payload.put("user_id", primaryRouteUserId);
         payload.put("target_user_id", primaryRouteUserId);
         payload.put("target_user_ids", targetUserIds);
-        payload.put("manage_url", buildContactManageUrl(publicWebBaseUrl, inquiry.getId(), ""));
+        payload.put("manage_url", buildContactManageUrl(publicWebBaseUrl, inquiry.getId()));
 
         return sendNotification("CONTACT_INQUIRY_CREATED", payload, List.of());
     }
@@ -97,7 +95,7 @@ public class ContactInquiryErpService {
         payload.put("user_id", replyUserId);
         payload.put("target_user_id", replyUserId);
         payload.put("replied_at", firstNonBlank(reply.getModifiedAt(), reply.getRegisteredAt()));
-        payload.put("manage_url", buildContactManageUrl(publicWebBaseUrl, inquiry.getId(), replyUserId));
+        payload.put("manage_url", buildContactManageUrl(publicWebBaseUrl, inquiry.getId()));
 
         return sendNotification("CONTACT_INQUIRY_REPLIED", payload, List.of(replyUserId));
     }
@@ -143,7 +141,8 @@ public class ContactInquiryErpService {
         body.put("routingHints", routingHints);
 
         try {
-            restClient.post()
+            @SuppressWarnings("unchecked")
+            Map<String, Object> responseBody = restClient.post()
                     .uri(URI.create(webhookUrl))
                     .headers((headers) -> {
                         headers.set("Content-Type", "application/json");
@@ -153,9 +152,14 @@ public class ContactInquiryErpService {
                     })
                     .body(body)
                     .retrieve()
-                    .toBodilessEntity();
+                    .body(Map.class);
 
-            return buildSyncResult(true, "", null);
+            Map<String, Object> result = buildSyncResult(true, "", null);
+            String primaryUserId = extractPrimaryUserId(responseBody);
+            if (!primaryUserId.isEmpty()) {
+                result.put("primary_user_id", primaryUserId);
+            }
+            return result;
         } catch (RestClientResponseException ex) {
             return buildSyncResult(false, "erp_webhook_failed", ex.getStatusCode().value());
         } catch (RestClientException | IllegalArgumentException ex) {
@@ -164,7 +168,7 @@ public class ContactInquiryErpService {
     }
 
     // 문의관리 상세 화면 링크 조합
-    private String buildContactManageUrl(String publicWebBaseUrl, Long inquiryId, String erpUserId) {
+    private String buildContactManageUrl(String publicWebBaseUrl, Long inquiryId) {
         String baseUrl = normalize(publicWebBaseUrl);
         if (baseUrl.isEmpty()) {
             baseUrl = "http://localhost:8081";
@@ -175,13 +179,22 @@ public class ContactInquiryErpService {
         if (inquiryId != null && inquiryId > 0) {
             route += "/" + inquiryId;
         }
+        return route;
+    }
 
-        String normalizedErpUserId = normalize(erpUserId);
-        if (normalizedErpUserId.isEmpty()) {
-            return route;
+    // ERP 웹훅 응답에서 라우팅된 대표 user_id 추출
+    @SuppressWarnings("unchecked")
+    private String extractPrimaryUserId(Map<String, Object> responseBody) {
+        if (responseBody == null || responseBody.isEmpty()) {
+            return "";
         }
 
-        return route + "?erp_user_id=" + URLEncoder.encode(normalizedErpUserId, StandardCharsets.UTF_8);
+        Object routingObject = responseBody.get("routing");
+        if (!(routingObject instanceof Map<?, ?> routingMap)) {
+            return "";
+        }
+
+        return normalize(((Map<String, Object>) routingMap).get("primary_user_id"));
     }
 
     // CSV 문자열을 공백 제거/중복 제거된 문자열 목록으로 변환

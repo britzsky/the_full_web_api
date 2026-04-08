@@ -17,12 +17,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import com.thefullweb.api.domain.contact.ContactInquiry;
 import com.thefullweb.api.domain.contact.ContactReply;
 import com.thefullweb.api.dto.contact.ContactInquiryCreateRequest;
+import com.thefullweb.api.dto.contact.ContactReplyMailRuntimeConfigRequest;
+import com.thefullweb.api.dto.contact.ContactReplyMailRuntimeConfigResponse;
 import com.thefullweb.api.dto.contact.ContactReplyUpsertRequest;
 import com.thefullweb.api.dto.common.MessageResponse;
 import com.thefullweb.api.service.ContactInquiryErpService;
 import com.thefullweb.api.service.ContactInquiryService;
-
-import com.thefullweb.api.config.WebCorsConfig;
+import com.thefullweb.api.service.ContactReplyMailRuntimeConfigService;
 
 // 고객문의/문의관리 API 컨트롤러
 @RestController
@@ -32,16 +33,16 @@ public class ContactInquiryController {
     // 문의 도메인 서비스 주입
     private final ContactInquiryService contactInquiryService;
     private final ContactInquiryErpService contactInquiryErpService;
-	private WebCorsConfig webCorsConfig;
+    private final ContactReplyMailRuntimeConfigService contactReplyMailRuntimeConfigService;
 
     public ContactInquiryController(
             ContactInquiryService contactInquiryService,
-            WebCorsConfig webCorsConfig,
-            ContactInquiryErpService contactInquiryErpService) {
-		        this.contactInquiryService = contactInquiryService;
-		        this.contactInquiryErpService = contactInquiryErpService;
-		        this.webCorsConfig = webCorsConfig;
-		    }
+            ContactInquiryErpService contactInquiryErpService,
+            ContactReplyMailRuntimeConfigService contactReplyMailRuntimeConfigService) {
+        this.contactInquiryService = contactInquiryService;
+        this.contactInquiryErpService = contactInquiryErpService;
+        this.contactReplyMailRuntimeConfigService = contactReplyMailRuntimeConfigService;
+    }
 
     // 문의관리 API: 문의 목록 조회
     @GetMapping
@@ -78,6 +79,13 @@ public class ContactInquiryController {
         Map<String, Object> erpSync = contactInquiryErpService.notifyInquiryCreated(
                 saved,
                 resolvePublicWebBaseUrl(httpServletRequest));
+        String assignedUserId = normalize(erpSync.get("primary_user_id"));
+        if (!assignedUserId.isEmpty()) {
+            ContactInquiry assignedInquiry = contactInquiryService.assignInquiryUser(saved.getId(), assignedUserId);
+            if (assignedInquiry != null) {
+                saved = assignedInquiry;
+            }
+        }
 
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("message", "문의가 정상적으로 접수되었습니다. 확인 후 연락드리겠습니다.");
@@ -94,6 +102,17 @@ public class ContactInquiryController {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("reply", reply);
         return ResponseEntity.ok(payload);
+    }
+
+    // 문의 답변 메일 발송용 SMTP 런타임 설정 조회
+    @PostMapping("/reply/mail-runtime-config")
+    public ResponseEntity<?> getReplyMailRuntimeConfig(@RequestBody ContactReplyMailRuntimeConfigRequest request) {
+        try {
+            ContactReplyMailRuntimeConfigResponse config = contactReplyMailRuntimeConfigService.resolve(request);
+            return ResponseEntity.ok(Map.of("config", config));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        }
     }
 
     // 문의관리 API: 문의 답변 저장/수정
@@ -124,6 +143,23 @@ public class ContactInquiryController {
         payload.put("message", "답변이 저장되었습니다.");
         payload.put("reply", savedReply);
         payload.put("erpSync", erpSync);
+        return ResponseEntity.ok(payload);
+    }
+
+    // 문의관리 API: 답변 메일 발송 완료 후 답변여부를 완료 상태로 반영
+    @PostMapping("/{id}/reply/complete")
+    public ResponseEntity<?> completeReply(
+            @PathVariable("id") Long id,
+            @RequestBody(required = false) Map<String, String> body) {
+        String userId = body == null ? "" : normalize(body.get("userId"));
+        ContactInquiry inquiry = contactInquiryService.markInquiryAnswered(id, userId);
+        if (inquiry == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "문의 내역을 찾을 수 없습니다."));
+        }
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("message", "답변 완료 상태가 반영되었습니다.");
+        payload.put("inquiry", inquiry);
         return ResponseEntity.ok(payload);
     }
 
@@ -191,6 +227,11 @@ public class ContactInquiryController {
     // 헤더 문자열 공백 제거
     private String normalize(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    // Object 타입 문자열 공백 제거
+    private String normalize(Object value) {
+        return value == null ? "" : value.toString().trim();
     }
 }
 
