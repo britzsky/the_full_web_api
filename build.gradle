@@ -65,7 +65,7 @@ dependencies {
 }
 
 bootWar {
-    archiveFileName = 'web-api.war'
+    archiveFileName = 'ROOT.war'
 }
 
 tasks.named('test') {
