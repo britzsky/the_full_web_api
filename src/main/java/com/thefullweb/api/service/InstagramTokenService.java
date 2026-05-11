@@ -4,6 +4,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import org.springframework.dao.DataAccessException;
@@ -23,6 +24,7 @@ public class InstagramTokenService {
 
     private static final long DEFAULT_EXPIRES_IN_SECONDS = 60L * 24L * 60L * 60L;
     private static final long REFRESH_THRESHOLD_DAYS = 14L;
+    private static final ZoneId KST_ZONE_ID = ZoneId.of("Asia/Seoul");
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     private final InstagramTokenMapper instagramTokenMapper;
@@ -66,7 +68,7 @@ public class InstagramTokenService {
         }
 
         LocalDateTime expiresAt = parseExpiresAt(currentToken.getExpiresAt());
-        if (expiresAt != null && Duration.between(LocalDateTime.now(), expiresAt).toDays() > REFRESH_THRESHOLD_DAYS) {
+        if (expiresAt != null && Duration.between(LocalDateTime.now(KST_ZONE_ID), expiresAt).toDays() > REFRESH_THRESHOLD_DAYS) {
             return;
         }
 

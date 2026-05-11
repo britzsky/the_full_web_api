@@ -26,9 +26,9 @@
             mod_dt
         ) VALUES (
             #{accessToken},
-            DATE_ADD(NOW(), INTERVAL #{expiresInSeconds} SECOND),
-            NOW(),
-            NOW()
+            DATE_ADD(DATE_ADD(NOW(), INTERVAL 9 HOUR), INTERVAL #{expiresInSeconds} SECOND),
+            DATE_ADD(NOW(), INTERVAL 9 HOUR),
+            DATE_ADD(NOW(), INTERVAL 9 HOUR)
         )
     </insert>
 
@@ -36,8 +36,8 @@
     <update id="updateToken">
         UPDATE tb_instagram_token
         SET access_token = #{accessToken},
-            expires_at = DATE_ADD(NOW(), INTERVAL #{expiresInSeconds} SECOND),
-            mod_dt = NOW()
+            expires_at = DATE_ADD(DATE_ADD(NOW(), INTERVAL 9 HOUR), INTERVAL #{expiresInSeconds} SECOND),
+            mod_dt = DATE_ADD(NOW(), INTERVAL 9 HOUR)
         WHERE id = #{id}
     </update>
 
