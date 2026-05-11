@@ -57,3 +57,13 @@ CREATE TABLE IF NOT EXISTS tb_promotion_posts (
     KEY idx_tb_promotion_posts_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS tb_instagram_token (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    access_token TEXT NOT NULL,
+    expires_at DATETIME NOT NULL,
+    reg_dt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_dt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tb_instagram_token_expires_at (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

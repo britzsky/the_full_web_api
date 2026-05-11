@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -18,6 +19,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriUtils;
 
 import com.thefullweb.api.config.WebCorsConfig;
+import com.thefullweb.api.service.InstagramTokenService;
 
 // 서버 상태 확인과 공개 조회성 엔드포인트를 처리하는 컨트롤러
 @RestController
@@ -26,13 +28,15 @@ public class HealthController {
     // 외부 공개 API 호출용 RestClient
     private final RestClient restClient = RestClient.create();
     private final WebCorsConfig webCorsConfig;
+    private final InstagramTokenService instagramTokenService;
 
     // 로컬/운영 시크릿 설정에서 읽는 인스타그램 access token
     @Value("${instagram.access-token:}")
     private String accessToken;
 
-    public HealthController(WebCorsConfig webCorsConfig) {
+    public HealthController(WebCorsConfig webCorsConfig, InstagramTokenService instagramTokenService) {
         this.webCorsConfig = webCorsConfig;
+        this.instagramTokenService = instagramTokenService;
     }
 
     // API 정상 기동 여부 응답
@@ -43,9 +47,11 @@ public class HealthController {
 
     // 홈 소셜 섹션용 인스타그램 사용자 정보와 최신 미디어 목록 조회
     @GetMapping("/instagram")
-    public ResponseEntity<Map<String, Object>> getInstagramFeed() {
+    public ResponseEntity<Map<String, Object>> getInstagramFeed(
+            @RequestParam(value = "limit", required = false) Integer limit,
+            @RequestParam(value = "after", required = false) String after) {
         try {
-            return ResponseEntity.ok(loadInstagramFeed());
+            return ResponseEntity.ok(loadInstagramFeed(limit, after));
         } catch (IllegalStateException ex) {
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("error", ex.getMessage());
@@ -63,8 +69,8 @@ public class HealthController {
     }
 
     // 인스타그램 사용자 정보와 최신 미디어 목록을 조합해서 반환
-    private Map<String, Object> loadInstagramFeed() {
-        String normalizedAccessToken = normalize(accessToken);
+    private Map<String, Object> loadInstagramFeed(Integer requestedLimit, String after) {
+        String normalizedAccessToken = instagramTokenService.getCurrentAccessToken(accessToken);
         if (normalizedAccessToken.isEmpty()) {
             throw new IllegalStateException("Missing Instagram access token.");
         }
@@ -79,7 +85,7 @@ public class HealthController {
 
         for (String fields : meFieldsCandidates) {
             try {
-                meData = requestMap(buildInstagramApiUrl("/me", fields, null, normalizedAccessToken));
+                meData = requestMap(buildInstagramApiUrl("/me", fields, null, null, normalizedAccessToken));
                 break;
             } catch (InstagramApiException ex) {
                 meErrorStatus = ex.getStatusCode();
@@ -101,10 +107,12 @@ public class HealthController {
 
         Map<String, Object> mediaData;
         try {
+            int mediaLimit = normalizeInstagramLimit(requestedLimit);
             mediaData = requestMap(buildInstagramApiUrl(
                     "/" + userId + "/media",
                     "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,children{id,media_type,media_url,thumbnail_url}",
-                    8,
+                    mediaLimit,
+                    normalize(after),
                     normalizedAccessToken));
         } catch (InstagramApiException ex) {
             throw new InstagramApiException(ex.getStatusCode(), "Failed to fetch Instagram media.", ex.getDetails());
@@ -113,6 +121,7 @@ public class HealthController {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("user", meData);
         payload.put("data", toMediaItems(mediaData.get("data")));
+        payload.put("paging", mediaData.get("paging"));
         return payload;
     }
 
@@ -139,7 +148,7 @@ public class HealthController {
     }
 
     // 인스타그램 Graph API URL 문자열 조합
-    private String buildInstagramApiUrl(String path, String fields, Integer limit, String token) {
+    private String buildInstagramApiUrl(String path, String fields, Integer limit, String after, String token) {
         StringBuilder urlBuilder = new StringBuilder("https://graph.instagram.com")
                 .append(path)
                 .append("?fields=")
@@ -149,9 +158,22 @@ public class HealthController {
             urlBuilder.append("&limit=").append(limit);
         }
 
+        if (!normalize(after).isEmpty()) {
+            urlBuilder.append("&after=").append(UriUtils.encodeQueryParam(normalize(after), StandardCharsets.UTF_8));
+        }
+
         return urlBuilder.append("&access_token=")
                 .append(UriUtils.encodeQueryParam(token, StandardCharsets.UTF_8))
                 .toString();
+    }
+
+    // 인스타그램 API 조회 개수를 화면 요청 범위 안에서 보정
+    private int normalizeInstagramLimit(Integer requestedLimit) {
+        if (requestedLimit == null) {
+            return 8;
+        }
+
+        return Math.max(1, Math.min(requestedLimit, 24));
     }
 
     // 인스타그램 미디어 배열을 프론트에서 사용하는 형태로 정규화

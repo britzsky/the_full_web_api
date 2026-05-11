@@ -5,9 +5,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 // the_full_web_api 스프링부트 진입점
 @SpringBootApplication
+@EnableScheduling
 @MapperScan("com.thefullweb.api.mapper")
 public class TheFullWebApiApplication extends SpringBootServletInitializer{
 
