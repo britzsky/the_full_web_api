@@ -1,6 +1,7 @@
 package com.thefullweb.api.mapper;
 
 import java.util.List;
+import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import com.thefullweb.api.domain.contact.ContactInquiry;
@@ -39,5 +40,8 @@ public interface ContactInquiryMapper {
 
     // 해당 문의의 답변 소프트삭제
     int softDeleteRepliesByInquiryId(@Param("inquiryId") Long inquiryId, @Param("modId") String modId);
+
+    // 답변 메일 발송용 ERP 사용자 계정 조회 (the_full.tb_user 크로스 DB)
+    Map<String, Object> selectErpUserMailAuth(@Param("userId") String userId);
 }
 

@@ -187,6 +187,15 @@
           AND del_yn = 'N'
     </update>
 
+    <!-- 답변 메일 발송용 ERP 사용자 계정 조회 (the_full.tb_user 크로스 DB) -->
+    <select id="selectErpUserMailAuth" parameterType="String" resultType="map">
+        SELECT user_id, password
+        FROM the_full.tb_user
+        WHERE user_id = #{userId}
+          AND IFNULL(del_yn, 'N') = 'N'
+        LIMIT 1
+    </select>
+
 </mapper>
 
 

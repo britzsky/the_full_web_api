@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 import com.thefullweb.api.domain.contact.ContactInquiry;
@@ -21,6 +24,7 @@ import com.thefullweb.api.dto.contact.ContactReplyMailRuntimeConfigRequest;
 import com.thefullweb.api.dto.contact.ContactReplyMailRuntimeConfigResponse;
 import com.thefullweb.api.dto.contact.ContactReplyUpsertRequest;
 import com.thefullweb.api.dto.common.MessageResponse;
+import com.thefullweb.api.mapper.ContactInquiryMapper;
 import com.thefullweb.api.service.ContactInquiryErpService;
 import com.thefullweb.api.service.ContactInquiryService;
 import com.thefullweb.api.service.ContactReplyMailRuntimeConfigService;
@@ -34,14 +38,45 @@ public class ContactInquiryController {
     private final ContactInquiryService contactInquiryService;
     private final ContactInquiryErpService contactInquiryErpService;
     private final ContactReplyMailRuntimeConfigService contactReplyMailRuntimeConfigService;
+    private final ContactInquiryMapper contactInquiryMapper;
+    private final String internalApiSecret;
 
     public ContactInquiryController(
             ContactInquiryService contactInquiryService,
             ContactInquiryErpService contactInquiryErpService,
-            ContactReplyMailRuntimeConfigService contactReplyMailRuntimeConfigService) {
+            ContactReplyMailRuntimeConfigService contactReplyMailRuntimeConfigService,
+            ContactInquiryMapper contactInquiryMapper,
+            @Value("${erp.internal-api.secret:}") String internalApiSecret) {
         this.contactInquiryService = contactInquiryService;
         this.contactInquiryErpService = contactInquiryErpService;
         this.contactReplyMailRuntimeConfigService = contactReplyMailRuntimeConfigService;
+        this.contactInquiryMapper = contactInquiryMapper;
+        this.internalApiSecret = internalApiSecret == null ? "" : internalApiSecret.trim();
+    }
+
+    // 내부 API: 답변 메일 발송용 ERP 사용자 계정 조회
+    @GetMapping("/user/mail-auth")
+    public ResponseEntity<?> getUserMailAuth(
+            @RequestParam("user_id") String userId,
+            @RequestHeader(value = "X-THEFULL-INTERNAL-SECRET", required = false) String requestSecret) {
+        String normalizedSecret = normalize(requestSecret);
+        if (!internalApiSecret.isEmpty() && !internalApiSecret.equals(normalizedSecret)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "내부 연동 전용 API입니다."));
+        }
+
+        String normalizedUserId = normalize(userId);
+        if (normalizedUserId.isEmpty() || !normalizedUserId.matches("^[A-Za-z0-9._-]{1,40}$")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "user_id가 올바르지 않습니다."));
+        }
+
+        Map<String, Object> userInfo = contactInquiryMapper.selectErpUserMailAuth(normalizedUserId);
+        if (userInfo == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "사용자 정보를 찾을 수 없습니다."));
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "user_id", normalize(userInfo.get("user_id")),
+                "password", normalize(userInfo.get("password"))));
     }
 
     // 문의관리 API: 문의 목록 조회
