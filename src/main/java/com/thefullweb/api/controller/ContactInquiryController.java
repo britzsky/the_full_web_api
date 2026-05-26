@@ -69,14 +69,14 @@ public class ContactInquiryController {
             return ResponseEntity.badRequest().body(Map.of("error", "user_id가 올바르지 않습니다."));
         }
 
-        Map<String, Object> userInfo = contactInquiryMapper.selectErpUserMailAuth(normalizedUserId);
-        if (userInfo == null) {
+        String password = contactInquiryMapper.selectErpUserMailAuthPassword(normalizedUserId);
+        if (password == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "사용자 정보를 찾을 수 없습니다."));
         }
 
         return ResponseEntity.ok(Map.of(
-                "user_id", normalize(userInfo.get("user_id")),
-                "password", normalize(userInfo.get("password"))));
+                "user_id", normalizedUserId,
+                "password", password));
     }
 
     // 문의관리 API: 문의 목록 조회

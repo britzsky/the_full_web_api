@@ -6,7 +6,7 @@
 
     <!-- 문의 등록 -->
     <insert id="insertInquiry" parameterType="ContactInquiry" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO tb_inquiry (
+        INSERT INTO the_full_web.tb_inquiry (
             business_name,
             manager_name,
             phone_number,
@@ -62,7 +62,7 @@
             DATE_FORMAT(submitted_at, '%Y-%m-%dT%H:%i:%s') AS submitted_at,
             DATE_FORMAT(reg_dt, '%Y-%m-%dT%H:%i:%s') AS created_at,
             DATE_FORMAT(mod_dt, '%Y-%m-%dT%H:%i:%s') AS updated_at
-        FROM tb_inquiry
+        FROM the_full_web.tb_inquiry
         WHERE del_yn = 'N'
         ORDER BY id DESC
     </select>
@@ -93,7 +93,7 @@
             DATE_FORMAT(mod_dt, '%Y-%m-%dT%H:%i:%s') AS updated_at,
             del_yn,
             DATE_FORMAT(del_dt, '%Y-%m-%dT%H:%i:%s') AS del_dt
-        FROM tb_inquiry
+        FROM the_full_web.tb_inquiry
         WHERE id = #{id}
           AND del_yn = 'N'
         LIMIT 1
@@ -111,7 +111,7 @@
             DATE_FORMAT(mod_dt, '%Y-%m-%dT%H:%i:%s') AS modified_at,
             del_yn,
             DATE_FORMAT(del_dt, '%Y-%m-%dT%H:%i:%s') AS del_dt
-        FROM tb_inquiry_reply
+        FROM the_full_web.tb_inquiry_reply
         WHERE inquiry_id = #{inquiryId}
           AND del_yn = 'N'
         ORDER BY id DESC
@@ -120,7 +120,7 @@
 
     <!-- 답변 등록 -->
     <insert id="insertReply" parameterType="ContactReply" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO tb_inquiry_reply (
+        INSERT INTO the_full_web.tb_inquiry_reply (
             inquiry_id,
             content,
             user_id,
@@ -137,7 +137,7 @@
 
     <!-- 답변 수정 -->
     <update id="updateReply" parameterType="ContactReply">
-        UPDATE tb_inquiry_reply
+        UPDATE the_full_web.tb_inquiry_reply
         SET content = #{content},
             mod_id = #{modId},
             mod_dt = NOW()
@@ -147,7 +147,7 @@
 
     <!-- 문의 답변여부 처리 -->
     <update id="markInquiryAnswered">
-        UPDATE tb_inquiry
+        UPDATE the_full_web.tb_inquiry
         SET answer_yn = 'Y',
             mod_id = #{modId},
             mod_dt = NOW()
@@ -157,7 +157,7 @@
 
     <!-- 문의 담당 user_id 반영 -->
     <update id="updateInquiryAssignedUser">
-        UPDATE tb_inquiry
+        UPDATE the_full_web.tb_inquiry
         SET user_id = #{userId},
             mod_id = #{userId},
             mod_dt = NOW()
@@ -167,7 +167,7 @@
 
     <!-- 문의 소프트삭제 -->
     <update id="softDeleteInquiry">
-        UPDATE tb_inquiry
+        UPDATE the_full_web.tb_inquiry
         SET del_yn = 'Y',
             del_dt = NOW(),
             mod_id = #{modId},
@@ -178,7 +178,7 @@
 
     <!-- 답변 소프트삭제 -->
     <update id="softDeleteRepliesByInquiryId">
-        UPDATE tb_inquiry_reply
+        UPDATE the_full_web.tb_inquiry_reply
         SET del_yn = 'Y',
             del_dt = NOW(),
             mod_id = #{modId},
@@ -187,9 +187,9 @@
           AND del_yn = 'N'
     </update>
 
-    <!-- 답변 메일 발송용 ERP 사용자 계정 조회 (the_full.tb_user 크로스 DB) -->
-    <select id="selectErpUserMailAuth" parameterType="String" resultType="map">
-        SELECT user_id, password
+    <!-- 답변 메일 발송용 ERP 사용자 비밀번호 조회 (the_full.tb_user 크로스 DB) -->
+    <select id="selectErpUserMailAuthPassword" parameterType="String" resultType="String">
+        SELECT password
         FROM the_full.tb_user
         WHERE user_id = #{userId}
           AND IFNULL(del_yn, 'N') = 'N'

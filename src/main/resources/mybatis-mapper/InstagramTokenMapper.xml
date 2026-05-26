@@ -12,14 +12,14 @@
             DATE_FORMAT(expires_at, '%Y-%m-%dT%H:%i:%s') AS expires_at,
             DATE_FORMAT(reg_dt, '%Y-%m-%dT%H:%i:%s') AS reg_dt,
             DATE_FORMAT(mod_dt, '%Y-%m-%dT%H:%i:%s') AS mod_dt
-        FROM tb_instagram_token
+        FROM the_full_web.tb_instagram_token
         ORDER BY id DESC
         LIMIT 1
     </select>
 
     <!-- 신규 장기 토큰 저장 -->
     <insert id="insertToken">
-        INSERT INTO tb_instagram_token (
+        INSERT INTO the_full_web.tb_instagram_token (
             access_token,
             expires_at,
             reg_dt,
@@ -34,7 +34,7 @@
 
     <!-- 기존 장기 토큰 갱신 -->
     <update id="updateToken">
-        UPDATE tb_instagram_token
+        UPDATE the_full_web.tb_instagram_token
         SET access_token = #{accessToken},
             expires_at = DATE_ADD(DATE_ADD(NOW(), INTERVAL 9 HOUR), INTERVAL #{expiresInSeconds} SECOND),
             mod_dt = DATE_ADD(NOW(), INTERVAL 9 HOUR)
