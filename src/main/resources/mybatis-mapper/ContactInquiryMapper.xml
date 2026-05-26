@@ -188,7 +188,7 @@
     </update>
 
     <!-- 답변 메일 발송용 ERP 사용자 비밀번호 조회 (the_full.tb_user 크로스 DB) -->
-    <select id="selectErpUserMailAuthPassword" parameterType="String" resultType="String">
+    <select id="selectErpUserMailAuthPassword" parameterType="string" resultType="string">
         SELECT password
         FROM the_full.tb_user
         WHERE user_id = #{userId}

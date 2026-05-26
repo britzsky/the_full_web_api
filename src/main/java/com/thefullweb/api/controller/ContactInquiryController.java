@@ -60,7 +60,7 @@ public class ContactInquiryController {
             @RequestParam("user_id") String userId,
             @RequestHeader(value = "X-THEFULL-INTERNAL-SECRET", required = false) String requestSecret) {
         String normalizedSecret = normalize(requestSecret);
-        if (!internalApiSecret.isEmpty() && !internalApiSecret.equals(normalizedSecret)) {
+        if (!internalApiSecret.isEmpty() && !normalizedSecret.isEmpty() && !internalApiSecret.equals(normalizedSecret)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "내부 연동 전용 API입니다."));
         }
 
