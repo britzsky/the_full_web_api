@@ -55,6 +55,8 @@ public class WebCorsConfig implements WebMvcConfigurer {
                 "https://*.thefull.*",
                 "http://thefull.co.kr",
                 "https://thefull.co.kr",
+                "http://thefull.*",
+                "https://thefull.*",
                 "http://*.thefull.kr:*",
                 "https://*.thefull.kr:*"));
 
@@ -68,3 +70,4 @@ public class WebCorsConfig implements WebMvcConfigurer {
         return allowedOriginPatterns.toArray(String[]::new);
     }
 }
+
