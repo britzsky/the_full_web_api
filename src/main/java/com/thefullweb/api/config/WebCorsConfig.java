@@ -51,6 +51,11 @@ public class WebCorsConfig implements WebMvcConfigurer {
                 "http://*.thefull.kr",
                 "https://*.thefull.kr",
                 "http://*.thefull.kr:*",
+                "http://*.thefull.*",
+                "https://*.thefull.*",
+                "http://thefull.co.kr",
+                "https://thefull.co.kr",
+                "http://*.thefull.kr:*",
                 "https://*.thefull.kr:*"));
 
         if (allowedOriginsProperty != null && !allowedOriginsProperty.isBlank()) {
