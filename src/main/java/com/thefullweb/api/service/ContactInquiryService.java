@@ -60,17 +60,16 @@ public class ContactInquiryService {
         return contactInquiryMapper.selectInquiryById(inquiryId);
     }
 
-    // 답변 메일 발송 완료 후 문의 답변여부를 완료 상태로 반영
+    // 답변 메일 발송 완료 후 저장된 답변의 이메일 발송 상태를 반영
     @Transactional
-    public ContactInquiry markInquiryAnswered(Long inquiryId, String userId) {
-        String actor = normalize(userId).isEmpty() ? "admin" : normalize(userId);
-        ContactInquiry inquiry = contactInquiryMapper.selectInquiryById(inquiryId);
-        if (inquiry == null) {
+    public ContactReply markReplyEmailSent(Long inquiryId) {
+        ContactReply reply = contactInquiryMapper.selectReplyByInquiryId(inquiryId);
+        if (reply == null) {
             return null;
         }
 
-        contactInquiryMapper.markInquiryAnswered(inquiryId, actor);
-        return contactInquiryMapper.selectInquiryById(inquiryId);
+        contactInquiryMapper.markReplyEmailSent(inquiryId);
+        return contactInquiryMapper.selectReplyByInquiryId(inquiryId);
     }
 
     // 고객문의 등록
@@ -122,6 +121,9 @@ public class ContactInquiryService {
             existing.setModId(userId);
             contactInquiryMapper.updateReply(existing);
         }
+
+        // 문의 알림은 이메일 발송이 아니라 답변 저장 완료를 기준으로 종료한다.
+        contactInquiryMapper.markInquiryAnswered(inquiryId, userId);
         return contactInquiryMapper.selectReplyByInquiryId(inquiryId);
     }
 

@@ -28,8 +28,11 @@ public interface ContactInquiryMapper {
     // 문의 답변 수정
     int updateReply(ContactReply reply);
 
-    // 문의 답변여부 Y 업데이트
+    // 문의 답변 저장 상태를 Y로 업데이트
     int markInquiryAnswered(@Param("id") Long id, @Param("modId") String modId);
+
+    // 저장된 답변의 이메일 발송 상태를 Y로 업데이트
+    int markReplyEmailSent(@Param("inquiryId") Long inquiryId);
 
     // 문의 담당 user_id 반영
     int updateInquiryAssignedUser(@Param("id") Long id, @Param("userId") String userId);

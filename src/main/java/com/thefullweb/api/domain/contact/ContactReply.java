@@ -9,6 +9,7 @@ public class ContactReply {
     private String registeredAt;
     private String modId;
     private String modifiedAt;
+    private String emailSentYn;
     private String delYn;
     private String delDt;
 
@@ -66,6 +67,14 @@ public class ContactReply {
 
     public void setModifiedAt(String modifiedAt) {
         this.modifiedAt = modifiedAt;
+    }
+
+    public String getEmailSentYn() {
+        return emailSentYn;
+    }
+
+    public void setEmailSentYn(String emailSentYn) {
+        this.emailSentYn = emailSentYn;
     }
 
     public String getDelYn() {

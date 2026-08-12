@@ -181,20 +181,19 @@ public class ContactInquiryController {
         return ResponseEntity.ok(payload);
     }
 
-    // 문의관리 API: 답변 메일 발송 완료 후 답변여부를 완료 상태로 반영
+    // 문의관리 API: 답변 메일 발송 완료 상태 반영
     @PostMapping("/{id}/reply/complete")
     public ResponseEntity<?> completeReply(
             @PathVariable("id") Long id,
             @RequestBody(required = false) Map<String, String> body) {
-        String userId = body == null ? "" : normalize(body.get("userId"));
-        ContactInquiry inquiry = contactInquiryService.markInquiryAnswered(id, userId);
-        if (inquiry == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "문의 내역을 찾을 수 없습니다."));
+        ContactReply reply = contactInquiryService.markReplyEmailSent(id);
+        if (reply == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "저장된 답변을 찾을 수 없습니다."));
         }
 
         Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("message", "답변 완료 상태가 반영되었습니다.");
-        payload.put("inquiry", inquiry);
+        payload.put("message", "이메일 발송 상태가 반영되었습니다.");
+        payload.put("reply", reply);
         return ResponseEntity.ok(payload);
     }
 

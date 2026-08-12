@@ -109,6 +109,7 @@
             DATE_FORMAT(reg_dt, '%Y-%m-%dT%H:%i:%s') AS registered_at,
             mod_id,
             DATE_FORMAT(mod_dt, '%Y-%m-%dT%H:%i:%s') AS modified_at,
+            email_sent_yn,
             del_yn,
             DATE_FORMAT(del_dt, '%Y-%m-%dT%H:%i:%s') AS del_dt
         FROM the_full_web.tb_inquiry_reply
@@ -140,8 +141,17 @@
         UPDATE the_full_web.tb_inquiry_reply
         SET content = #{content},
             mod_id = #{modId},
-            mod_dt = NOW()
+            mod_dt = NOW(),
+            email_sent_yn = 'N'
         WHERE id = #{id}
+          AND del_yn = 'N'
+    </update>
+
+    <!-- 저장된 답변 이메일 발송 처리 -->
+    <update id="markReplyEmailSent">
+        UPDATE the_full_web.tb_inquiry_reply
+        SET email_sent_yn = 'Y'
+        WHERE inquiry_id = #{inquiryId}
           AND del_yn = 'N'
     </update>
 
