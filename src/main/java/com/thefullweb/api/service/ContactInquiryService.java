@@ -80,13 +80,14 @@ public class ContactInquiryService {
         inquiry.setManagerName(normalize(request.getManagerName()));
         inquiry.setPhoneNumber(normalize(request.getPhoneNumber()));
         inquiry.setEmail(normalize(request.getEmail()));
-        inquiry.setCurrentMealPrice(normalize(request.getCurrentMealPrice()));
-        inquiry.setDesiredMealPrice(normalize(request.getDesiredMealPrice()));
-        inquiry.setDailyMealCount(normalize(request.getDailyMealCount()));
-        inquiry.setMealType(normalize(request.getMealType()));
-        inquiry.setBusinessType(normalize(request.getBusinessType()));
+        // 화면에서 값을 받지 않는 항목(인스타그램 간편문의 등)은 DB에 실제 NULL로 저장한다.
+        inquiry.setCurrentMealPrice(toNullable(request.getCurrentMealPrice()));
+        inquiry.setDesiredMealPrice(toNullable(request.getDesiredMealPrice()));
+        inquiry.setDailyMealCount(toNullable(request.getDailyMealCount()));
+        inquiry.setMealType(toNullable(request.getMealType()));
+        inquiry.setBusinessType(toNullable(request.getBusinessType()));
         inquiry.setSwitchingReason(toNullable(request.getSwitchingReason()));
-        inquiry.setTitle(normalize(request.getTitle()));
+        inquiry.setTitle(toNullable(request.getTitle()));
         inquiry.setInquiryContent(normalize(request.getInquiryContent()));
         inquiry.setAnswerYn("N");
         inquiry.setSubmittedAt(resolveSubmittedAt(request.getSubmittedAt()));

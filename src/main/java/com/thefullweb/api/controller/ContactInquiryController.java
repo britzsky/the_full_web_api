@@ -101,12 +101,9 @@ public class ContactInquiryController {
     public ResponseEntity<?> createInquiry(
             @RequestBody ContactInquiryCreateRequest request,
             HttpServletRequest httpServletRequest) {
+        // DB 컬럼이 nullable로 변경되어 필수값은 5개(업장명/담당자/연락처/이메일/문의내용)만 검증한다.
         if (isBlank(request.getBusinessName()) || isBlank(request.getManagerName()) || isBlank(request.getPhoneNumber())
-                || isBlank(request.getEmail()) || isBlank(request.getCurrentMealPrice())
-                || isBlank(request.getDesiredMealPrice()) || isBlank(request.getDailyMealCount())
-                || isBlank(request.getMealType()) || isBlank(request.getBusinessType())
-                || isBlank(request.getTitle())
-                || isBlank(request.getInquiryContent())) {
+                || isBlank(request.getEmail()) || isBlank(request.getInquiryContent())) {
             return ResponseEntity.badRequest().body(Map.of("error", "필수 항목을 입력해 주세요."));
         }
 
