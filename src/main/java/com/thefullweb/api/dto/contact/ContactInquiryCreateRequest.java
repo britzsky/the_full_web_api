@@ -1,5 +1,7 @@
 package com.thefullweb.api.dto.contact;
 
+import java.util.List;
+
 // 고객문의 등록 요청 DTO
 public class ContactInquiryCreateRequest {
     private String businessName;
@@ -9,6 +11,8 @@ public class ContactInquiryCreateRequest {
     private String currentMealPrice;
     private String desiredMealPrice;
     private String dailyMealCount;
+    private List<String> mealTypes;
+    private String mealTypeOther;
     private String mealType;
     private String businessType;
     private String switchingReason;
@@ -72,6 +76,22 @@ public class ContactInquiryCreateRequest {
 
     public void setDailyMealCount(String dailyMealCount) {
         this.dailyMealCount = dailyMealCount;
+    }
+
+    public List<String> getMealTypes() {
+        return mealTypes;
+    }
+
+    public void setMealTypes(List<String> mealTypes) {
+        this.mealTypes = mealTypes;
+    }
+
+    public String getMealTypeOther() {
+        return mealTypeOther;
+    }
+
+    public void setMealTypeOther(String mealTypeOther) {
+        this.mealTypeOther = mealTypeOther;
     }
 
     public String getMealType() {

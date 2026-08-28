@@ -2,7 +2,10 @@ package com.thefullweb.api.service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.thefullweb.api.domain.contact.ContactInquiry;
@@ -14,6 +17,9 @@ import com.thefullweb.api.mapper.ContactInquiryMapper;
 // 고객문의/답변 도메인 비즈니스 서비스
 @Service
 public class ContactInquiryService {
+
+    private static final List<String> MEAL_TYPE_OPTIONS = List.of("조식", "중식", "석식", "기타");
+    private static final String MEAL_TYPE_OTHER = "기타";
 
     // MyBatis 문의 매퍼 주입
     private final ContactInquiryMapper contactInquiryMapper;
@@ -84,7 +90,7 @@ public class ContactInquiryService {
         inquiry.setCurrentMealPrice(toNullable(request.getCurrentMealPrice()));
         inquiry.setDesiredMealPrice(toNullable(request.getDesiredMealPrice()));
         inquiry.setDailyMealCount(toNullable(request.getDailyMealCount()));
-        inquiry.setMealType(toNullable(request.getMealType()));
+        inquiry.setMealType(resolveMealType(request));
         inquiry.setBusinessType(toNullable(request.getBusinessType()));
         inquiry.setSwitchingReason(toNullable(request.getSwitchingReason()));
         inquiry.setTitle(toNullable(request.getTitle()));
@@ -148,6 +154,37 @@ public class ContactInquiryService {
             return normalized;
         }
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    }
+
+    // 복수 선택 식사 구분을 기존 meal_type 컬럼과 관리 화면에서 사용하는 표시 문자열로 조합
+    private String resolveMealType(ContactInquiryCreateRequest request) {
+        List<String> requestedMealTypes = request.getMealTypes();
+        if (requestedMealTypes == null || requestedMealTypes.isEmpty()) {
+            return toNullable(request.getMealType());
+        }
+
+        Set<String> selectedMealTypes = new LinkedHashSet<>();
+        for (String requestedMealType : requestedMealTypes) {
+            String normalizedMealType = normalize(requestedMealType);
+            if (MEAL_TYPE_OPTIONS.contains(normalizedMealType)) {
+                selectedMealTypes.add(normalizedMealType);
+            }
+        }
+
+        List<String> mealTypeLabels = new ArrayList<>();
+        for (String mealTypeOption : MEAL_TYPE_OPTIONS) {
+            if (!selectedMealTypes.contains(mealTypeOption)) {
+                continue;
+            }
+
+            if (MEAL_TYPE_OTHER.equals(mealTypeOption)) {
+                mealTypeLabels.add(MEAL_TYPE_OTHER + ": " + normalize(request.getMealTypeOther()));
+            } else {
+                mealTypeLabels.add(mealTypeOption);
+            }
+        }
+
+        return toNullable(String.join(", ", mealTypeLabels));
     }
 }
 

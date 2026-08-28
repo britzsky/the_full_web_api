@@ -34,6 +34,10 @@ import com.thefullweb.api.service.ContactReplyMailRuntimeConfigService;
 @RequestMapping("/contact/manage")
 public class ContactInquiryController {
 
+    private static final List<String> MEAL_TYPE_OPTIONS = List.of("조식", "중식", "석식", "기타");
+    private static final String MEAL_TYPE_OTHER = "기타";
+    private static final int MEAL_TYPE_OTHER_MAX_LENGTH = 50;
+
     // 문의 도메인 서비스 주입
     private final ContactInquiryService contactInquiryService;
     private final ContactInquiryErpService contactInquiryErpService;
@@ -105,6 +109,11 @@ public class ContactInquiryController {
         if (isBlank(request.getBusinessName()) || isBlank(request.getManagerName()) || isBlank(request.getPhoneNumber())
                 || isBlank(request.getEmail()) || isBlank(request.getInquiryContent())) {
             return ResponseEntity.badRequest().body(Map.of("error", "필수 항목을 입력해 주세요."));
+        }
+
+        String mealTypeValidationError = validateMealTypes(request);
+        if (!mealTypeValidationError.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", mealTypeValidationError));
         }
 
         ContactInquiry saved = contactInquiryService.createInquiry(request);
@@ -208,6 +217,38 @@ public class ContactInquiryController {
     // 빈 문자열/공백 문자열 체크
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    // 복수 선택 식사 구분과 기타 직접 입력값의 저장 가능 여부 확인
+    private String validateMealTypes(ContactInquiryCreateRequest request) {
+        List<String> mealTypes = request.getMealTypes();
+        if (mealTypes == null) {
+            // 기존 단일 문자열 요청과 식사 구분이 없는 간편문의 요청은 그대로 허용한다.
+            return "";
+        }
+        if (mealTypes.isEmpty()) {
+            return "식사 구분을 하나 이상 선택해 주세요.";
+        }
+
+        boolean hasOther = false;
+        for (String mealType : mealTypes) {
+            String normalizedMealType = normalize(mealType);
+            if (!MEAL_TYPE_OPTIONS.contains(normalizedMealType)) {
+                return "식사 구분 선택값이 올바르지 않습니다.";
+            }
+            if (MEAL_TYPE_OTHER.equals(normalizedMealType)) {
+                hasOther = true;
+            }
+        }
+
+        String mealTypeOther = normalize(request.getMealTypeOther());
+        if (hasOther && mealTypeOther.isEmpty()) {
+            return "기타 식사 구분을 입력해 주세요.";
+        }
+        if (mealTypeOther.length() > MEAL_TYPE_OTHER_MAX_LENGTH) {
+            return "기타 식사 구분은 50자 이내로 입력해 주세요.";
+        }
+        return "";
     }
 
     // 브라우저 Origin/Referer를 기준으로 문의관리 화면 베이스 주소 추출
